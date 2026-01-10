@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Volume2, VolumeX } from "lucide-react";
 
 const TestimonialsSection = () => {
   const scrollToSimulator = () => {
@@ -9,8 +10,10 @@ const TestimonialsSection = () => {
     }
   };
 
-  const videos = ["/videos/1_1.mp4", "/videos/3_1.mp4"];
+  const videos = ["/videos/1_1.mp4", "/videos/3_1.mp4", "/videos/Design_sem_nome.mp4"];
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   // Auto-scroll carousel
   useEffect(() => {
@@ -45,6 +48,15 @@ const TestimonialsSection = () => {
 
         {/* Carrossel de Vídeos */}
         <div className="relative overflow-hidden mt-16">
+          {/* Botão de controle de som */}
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary text-primary-foreground p-3 rounded-full shadow-lg transition-all hover:scale-110"
+            aria-label={isMuted ? "Ativar som" : "Desativar som"}
+          >
+            {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+          </button>
+
           <div
             className="flex gap-6 transition-transform duration-1000 ease-linear"
             style={{
@@ -57,9 +69,10 @@ const TestimonialsSection = () => {
                 className="flex-shrink-0 w-80 h-[500px] rounded-2xl overflow-hidden shadow-lg"
               >
                 <video
+                  ref={(el) => (videoRefs.current[index] = el)}
                   src={video}
                   autoPlay
-                  muted
+                  muted={isMuted}
                   loop
                   playsInline
                   className="w-full h-full object-cover"
