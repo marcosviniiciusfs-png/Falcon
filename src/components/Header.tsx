@@ -15,7 +15,12 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50">
+      {/* Top bar with location */}
+      <div className="bg-primary-foreground/10 bg-black text-white text-center py-1.5 text-xs md:text-sm">
+        Lojas em Parauapebas e Canaã dos Carajás
+      </div>
+      <div className="bg-primary shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src={logo} alt="Grupo Nortecon" className="h-14 md:h-16 lg:h-20 w-auto" />
@@ -91,6 +96,7 @@ const Header = () => {
           </nav>
         </div>
       )}
+      </div>
     </header>
   );
 };
