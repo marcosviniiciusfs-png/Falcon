@@ -107,7 +107,8 @@ const Simulator = () => {
     
     setIsSubmitting(true);
     
-    const payload = {
+    // Payload para Convex CRM (formato existente)
+    const payloadCRM = {
       nome: formData.fullName,
       nome_completo: formData.fullName,
       telefone: formData.whatsapp,
@@ -120,20 +121,45 @@ const Simulator = () => {
       data_entrada: new Date().toISOString().split('T')[0],
     };
 
+    // Payload para Make.com (formato solicitado)
+    const payloadMake = {
+      "Data de Entrada": new Date().toISOString().split('T')[0],
+      "Nome Completo": formData.fullName,
+      "WhatsApp": formData.whatsapp,
+      "Tipo de Bem": formData.propertyType,
+      "Valor Pretendido (R$)": formData.creditAmount,
+      "Valor de Entrada (R$)": formData.hasDownPayment === "Não" ? "R$ 0,00" : formData.downPaymentAmount,
+      "Parcela Ideal (R$)": formData.monthlyPayment,
+      "Cidade": formData.city,
+    };
+
     // Navega IMEDIATAMENTE para página de obrigado
     navigate("/obrigado");
 
-    // Envia em background (fire-and-forget)
+    // Envia para Convex CRM (via Edge Function)
     fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-to-crm`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payloadCRM),
         keepalive: true,
       }
     ).catch((error) => {
-      console.error("Erro ao enviar lead:", error);
+      console.error("Erro ao enviar para CRM:", error);
+    });
+
+    // Envia para Make.com (direto do frontend)
+    fetch(
+      'https://hook.us2.make.com/2efqpinw0psfqi0astfgfdcchdwtlwug',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payloadMake),
+        keepalive: true,
+      }
+    ).catch((error) => {
+      console.error("Erro ao enviar para Make:", error);
     });
   };
 
