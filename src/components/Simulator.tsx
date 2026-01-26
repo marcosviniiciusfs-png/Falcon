@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -122,14 +121,22 @@ const Simulator = () => {
         data_entrada: new Date().toISOString().split('T')[0],
       };
 
-      const { data, error } = await supabase.functions.invoke('send-to-crm', {
-        body: payload,
-      });
+      const response = await fetch(
+        'https://43ecbb0e-055a-404a-920e-866debe2c8d3.supabase.co/functions/v1/send-to-crm',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
 
-      if (error) {
-        console.error("Erro na resposta:", error);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Erro na resposta:", errorData);
         throw new Error("Erro ao enviar simulação");
       }
+
+      const data = await response.json();
 
       navigate("/obrigado");
     } catch (error) {
