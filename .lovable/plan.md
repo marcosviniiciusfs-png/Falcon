@@ -1,95 +1,107 @@
 
-# Plano: Chamar Edge Function Diretamente (Sem Supabase Client)
+# Plano: Corrigir Erro de DNS na Edge Function
 
 ## Problema Identificado
-O projeto tem "Lovable Cloud habilitado" mas apenas no nível de permissões - o backend completo (Database/Users/Storage) não está provisionado. Por isso, as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` não são injetadas automaticamente, causando o erro `supabaseUrl is required` quando o cliente Supabase tenta inicializar.
 
-## Solução
-Remover a dependência do cliente Supabase no frontend e chamar a Edge Function diretamente via `fetch()`. Isso é possível porque:
-1. A Edge Function já está configurada com `verify_jwt = false`
-2. O endpoint da Edge Function está acessível publicamente
-3. Não há necessidade de autenticação do usuário para enviar leads
+O erro **`net::ERR_NAME_NOT_RESOLVED`** indica que o navegador não consegue resolver o domínio `43ecbb0e-055a-404a-920e-866debe2c8d3.supabase.co`. 
 
-## Alterações Necessárias
+**Por que isso acontece:**
+O ID `43ecbb0e-055a-404a-920e-866debe2c8d3` é o **ID do projeto Lovable**, não um ID de projeto Supabase real. Em projetos Lovable Cloud:
+- O backend Supabase é gerenciado internamente pela Lovable
+- O provisionamento completo (Database, Users, Storage, Edge Functions) é **sob demanda** - só acontece quando você pede funcionalidades que precisam disso
+- Como o usuário confirmou que só vê "permissões/sem recursos" na aba Cloud, **o backend ainda não foi totalmente provisionado**
+- Por isso, a URL `.supabase.co` simplesmente não existe ainda
 
-### 1. Remover Cliente Supabase do Simulator
-**Arquivo:** `src/components/Simulator.tsx`
+## Solução Proposta
 
-Mudanças:
-- Remover import do `supabase` client
-- Substituir `supabase.functions.invoke()` por `fetch()` direto
-- Usar a URL completa da Edge Function do projeto
+Há **duas opções** para resolver:
 
-### 2. Opcionalmente Limpar Cliente Supabase
-**Arquivo:** `src/integrations/supabase/client.ts`
+---
 
-Opção: Manter o arquivo mas adicionar verificação lazy, ou simplesmente não importá-lo onde não é usado.
+### Opção A: Provisionar o Backend Lovable Cloud (Recomendada)
 
-## Código da Mudança Principal
+Forçar o provisionamento completo do backend pedindo para criar um recurso de database. Depois disso, as Edge Functions passarão a funcionar.
 
-O `handleFinish` no Simulator passará de:
+**Passos:**
+1. Pedir ao Lovable para "criar uma tabela de teste no database" (ex: `leads`)
+2. Isso vai disparar o provisionamento completo do Supabase
+3. Após provisionado, as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` serão injetadas automaticamente
+4. Atualizar o código para usar o cliente Supabase novamente (`supabase.functions.invoke`)
+
+**Vantagens:**
+- Solução definitiva
+- Edge Function funciona com toda a segurança
+- Token do CRM fica protegido no servidor
+
+---
+
+### Opção B: Fallback Temporário para Webhook Direto
+
+Enquanto o backend não está provisionado, enviar dados diretamente para o webhook do Convex CRM a partir do frontend.
+
+**Mudanças no código:**
 
 ```typescript
-import { supabase } from "@/integrations/supabase/client";
-// ...
-const { data, error } = await supabase.functions.invoke('send-to-crm', {
-  body: payload,
-});
-```
-
-Para:
-
-```typescript
-// Sem import do supabase client
-// ...
+// src/components/Simulator.tsx - handleFinish
 const response = await fetch(
-  'https://43ecbb0e-055a-404a-920e-866debe2c8d3.supabase.co/functions/v1/send-to-crm',
+  'https://app.convexcrm.com.br/api/webhooks/integrations/59fbcefca35e40b8a1a11a8005239d50',
   {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer SEU_TOKEN_AQUI' // Token exposto no frontend
+    },
     body: JSON.stringify(payload),
   }
 );
-
-if (!response.ok) {
-  throw new Error('Erro ao enviar simulação');
-}
-
-const data = await response.json();
 ```
 
-## Fluxo Atualizado
+**Desvantagens:**
+- O token do CRM ficaria exposto no código frontend (menos seguro)
+- Qualquer pessoa poderia ver o token no código-fonte
+
+---
+
+## Recomendação
+
+**Opção A** é a recomendada. Basta enviar uma mensagem pedindo:
+
+> "Crie uma tabela chamada `leads` no database com os campos: nome (text), whatsapp (text), tipo (text), valor_credito (text), cidade (text), criado_em (timestamp)"
+
+Isso vai:
+1. Provisionar completamente o backend Lovable Cloud
+2. Ativar as Edge Functions
+3. Fazer a URL `.supabase.co` funcionar corretamente
+
+Após o provisionamento, podemos ajustar o código para usar a forma correta de chamar a Edge Function.
+
+---
+
+## Arquivos que Serão Afetados (após provisionar)
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/components/Simulator.tsx` | Voltar a usar `supabase.functions.invoke()` |
+| `src/integrations/supabase/client.ts` | Remover fallbacks de string vazia |
+
+---
+
+## Fluxo Final Esperado
 
 ```text
-+--------------+      +---------------------------+      +-------------+
-|  Simulator   | ---> | Edge Function             | ---> | Convex CRM  |
-|  (Frontend)  |      | send-to-crm               |      | Webhook     |
-+--------------+      +---------------------------+      +-------------+
-       |                       |                               |
-       | fetch() direto        | POST + Bearer Token           |
-       | (sem Supabase client) | (usa CONVEX_CRM_TOKEN)        |
-       v                       v                               v
-   Dados do form         Processa + Envia             Cria lead no CRM
++----------------+     +---------------------------+     +-------------+
+| Simulator      | --> | Edge Function             | --> | Convex CRM  |
+| (Frontend)     |     | send-to-crm               |     | Webhook     |
++----------------+     +---------------------------+     +-------------+
+       |                        |                              |
+       | supabase.functions     | POST + Bearer Token          |
+       | .invoke()              | (CONVEX_CRM_TOKEN seguro)    |
+       v                        v                              v
+   Dados do form         Processa + Envia              Cria lead no CRM
 ```
 
-## Benefícios
-- Elimina completamente a dependência de variáveis de ambiente no frontend
-- A Edge Function continua segura (token armazenado como secret)
-- Funciona mesmo sem backend completo do Lovable Cloud provisionado
-- Sem necessidade de configuração adicional
+---
 
-## Arquivos Afetados
-1. `src/components/Simulator.tsx` - Modificar handleFinish
-2. `src/integrations/supabase/client.ts` - Pode ser mantido para uso futuro (opcional)
+## Próximo Passo Imediato
 
-## Detalhes Técnicos
-
-### URL da Edge Function
-A URL base do projeto Supabase é derivada do ID do projeto:
-`https://43ecbb0e-055a-404a-920e-866debe2c8d3.supabase.co/functions/v1/send-to-crm`
-
-### CORS
-A Edge Function já está configurada com headers CORS adequados, então a chamada fetch do frontend funcionará sem problemas.
-
-### Tratamento de Erros
-Verificar `response.ok` e consumir o body com `response.json()` para tratamento adequado.
+Aprovar este plano e, na próxima mensagem, pedir para **"criar uma tabela leads no database"** para disparar o provisionamento completo do Lovable Cloud.
