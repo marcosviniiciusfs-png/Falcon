@@ -44,6 +44,8 @@ const Simulator = () => {
   const totalSteps = 6;
   const progress = (currentStep / totalSteps) * 100;
 
+  const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, "");
     const formatted = new Intl.NumberFormat("pt-BR", {
@@ -113,8 +115,8 @@ const Simulator = () => {
       nome_completo: formData.fullName,
       telefone: formData.whatsapp,
       whatsapp: formData.whatsapp,
-      tipo: formData.propertyType,
-      interesse: formData.propertyType,
+      tipo: removeAccents(formData.propertyType),
+      interesse: removeAccents(formData.propertyType),
       valor_do_credito: formData.creditAmount,
       valor_de_entrada: formData.hasDownPayment === "Não" ? "R$ 0,00" : formData.downPaymentAmount,
       cidade: formData.city,
