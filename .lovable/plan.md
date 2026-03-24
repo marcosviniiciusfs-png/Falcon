@@ -1,158 +1,46 @@
 
-# Plano: Envio Duplo para CRM Convex + Webhook Make
 
-## Objetivo
+# Plano: Corrigir Campo de Interesse/Tipo no CRM
 
-Adicionar um segundo envio de dados para o webhook do Make.com, mantendo o envio existente para o Convex CRM. Ambos serão executados em paralelo, em background, após a navegação para a página de obrigado.
+## Diagnóstico
 
----
+O envio para o CRM está funcionando (status 200, webhook processado). O problema é que o campo `tipo` pode não ser o nome correto que o Convex CRM usa internamente para "interesse". O CRM aceita o payload mas pode ignorar ou mapear incorretamente o campo.
 
-## Estrutura do Payload para Make.com
+## Solução
 
-Conforme solicitado, o JSON será formatado assim:
+Adicionar o campo `interesse` ao payload (além de manter `tipo`), e incluir log do payload completo na Edge Function para facilitar debug futuro.
 
-```json
-{
-  "Data de Entrada": "2026-01-26",
-  "Nome Completo": "João Silva",
-  "WhatsApp": "(11) 99999-9999",
-  "Tipo de Bem": "Imóvel",
-  "Valor Pretendido (R$)": "R$ 500.000,00",
-  "Valor de Entrada (R$)": "R$ 50.000,00",
-  "Parcela Ideal (R$)": "R$ 2.500,00",
-  "Cidade": "São Paulo"
-}
-```
+### 1. Atualizar o payload no `Simulator.tsx`
 
----
-
-## Mudanças no Código
-
-### Arquivo: `src/components/Simulator.tsx`
-
-Modificar a função `handleFinish` para enviar para ambos os destinos:
+Adicionar o campo `interesse` com o mesmo valor de `propertyType`:
 
 ```typescript
-const handleFinish = () => {
-  if (isSubmitting) return;
-  
-  setIsSubmitting(true);
-  
-  // Payload para Convex CRM (mantém formato existente)
-  const payloadCRM = {
-    nome: formData.fullName,
-    nome_completo: formData.fullName,
-    telefone: formData.whatsapp,
-    whatsapp: formData.whatsapp,
-    tipo: formData.propertyType,
-    valor_do_credito: formData.creditAmount,
-    valor_de_entrada: formData.hasDownPayment === "Não" ? "R$ 0,00" : formData.downPaymentAmount,
-    cidade: formData.city,
-    parcela_ideal: formData.monthlyPayment,
-    data_entrada: new Date().toISOString().split('T')[0],
-  };
-
-  // Payload para Make.com (formato solicitado)
-  const payloadMake = {
-    "Data de Entrada": new Date().toISOString().split('T')[0],
-    "Nome Completo": formData.fullName,
-    "WhatsApp": formData.whatsapp,
-    "Tipo de Bem": formData.propertyType,
-    "Valor Pretendido (R$)": formData.creditAmount,
-    "Valor de Entrada (R$)": formData.hasDownPayment === "Não" ? "R$ 0,00" : formData.downPaymentAmount,
-    "Parcela Ideal (R$)": formData.monthlyPayment,
-    "Cidade": formData.city,
-  };
-
-  // Navega IMEDIATAMENTE para página de obrigado
-  navigate("/obrigado");
-
-  // Envia para Convex CRM (via Edge Function)
-  fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-to-crm`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payloadCRM),
-      keepalive: true,
-    }
-  ).catch((error) => {
-    console.error("Erro ao enviar para CRM:", error);
-  });
-
-  // Envia para Make.com (direto do frontend)
-  fetch(
-    'https://hook.us2.make.com/2efqpinw0psfqi0astfgfdcchdwtlwug',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payloadMake),
-      keepalive: true,
-    }
-  ).catch((error) => {
-    console.error("Erro ao enviar para Make:", error);
-  });
+const payloadCRM = {
+  nome: formData.fullName,
+  nome_completo: formData.fullName,
+  telefone: formData.whatsapp,
+  whatsapp: formData.whatsapp,
+  tipo: formData.propertyType,
+  interesse: formData.propertyType,  // NOVO - campo alternativo
+  valor_do_credito: formData.creditAmount,
+  valor_de_entrada: ...,
+  cidade: formData.city,
+  parcela_ideal: formData.monthlyPayment,
+  data_entrada: new Date().toISOString().split('T')[0],
 };
 ```
 
----
+### 2. Atualizar a Edge Function
 
-## Fluxo de Dados
+- Adicionar `interesse` à interface `LeadData`
+- Logar o payload completo para debug
 
-```text
-Usuário clica "Finalizar"
-        │
-        ├──→ [IMEDIATO] navigate("/obrigado")
-        │         ↓
-        │    Usuário vê página de sucesso
-        │
-        ├──→ [BACKGROUND] fetch() → Edge Function → Convex CRM
-        │                    (payload formato CRM)
-        │
-        └──→ [BACKGROUND] fetch() → Make.com Webhook
-                             (payload formato Make)
-```
-
----
-
-## Mapeamento de Campos
-
-| Campo do Formulário | Convex CRM | Make.com |
-|---------------------|------------|----------|
-| Nome Completo | `nome` / `nome_completo` | `Nome Completo` |
-| WhatsApp | `whatsapp` / `telefone` | `WhatsApp` |
-| Tipo de Bem | `tipo` | `Tipo de Bem` |
-| Valor do Crédito | `valor_do_credito` | `Valor Pretendido (R$)` |
-| Valor de Entrada | `valor_de_entrada` | `Valor de Entrada (R$)` |
-| Parcela Mensal | `parcela_ideal` | `Parcela Ideal (R$)` |
-| Cidade | `cidade` | `Cidade` |
-| Data | `data_entrada` | `Data de Entrada` |
-
----
-
-## Considerações de Segurança
-
-O webhook do Make.com será chamado **diretamente do frontend**. Isso é seguro porque:
-
-1. **Webhooks Make são públicos por design** - não precisam de autenticação
-2. **A URL já está exposta** na mensagem do usuário
-3. **Não há tokens secretos** envolvidos nesta chamada
-
-Se no futuro precisar adicionar autenticação ao Make, podemos criar uma segunda Edge Function.
-
----
-
-## Arquivos Afetados
+### Arquivos Afetados
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/components/Simulator.tsx` | Adicionar segundo fetch para Make.com |
+| `src/components/Simulator.tsx` | Adicionar campo `interesse` ao payload CRM |
+| `supabase/functions/send-to-crm/index.ts` | Adicionar `interesse` à interface + log completo do payload |
 
----
+Após implementar, podemos testar e verificar nos logs se o campo está chegando corretamente ao CRM.
 
-## Benefícios
-
-- **Simultaneidade**: Ambos os envios acontecem em paralelo
-- **Velocidade**: Usuário não espera nenhuma resposta
-- **Independência**: Se um falhar, o outro continua funcionando
-- **Formato correto**: Cada destino recebe os dados no formato esperado
