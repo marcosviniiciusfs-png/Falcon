@@ -164,6 +164,28 @@ const Simulator = () => {
     ).catch((error) => {
       console.error("Erro ao enviar para Make:", error);
     });
+
+    // Envia para o webhook da Raz Soluções
+    fetch(
+      'https://uxttihjsxfowursjyult.supabase.co/functions/v1/form-webhook/923d91cc523d0fc24a11a57d01a933a30bf6b0637738c06e13e5a60a9ea3ab56',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: formData.fullName,
+          whatsapp: formData.whatsapp,
+          tipo_bem: formData.propertyType,
+          valor_credito: formData.creditAmount,
+          valor_entrada: formData.hasDownPayment === "Não" ? "R$ 0,00" : formData.downPaymentAmount,
+          parcela_ideal: formData.monthlyPayment,
+          cidade: formData.city,
+          data_envio: new Date().toISOString(),
+        }),
+        keepalive: true,
+      }
+    ).catch((error) => {
+      console.error("Erro ao enviar para webhook:", error);
+    });
   };
 
   const renderStep = () => {
