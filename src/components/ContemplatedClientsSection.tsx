@@ -23,21 +23,33 @@ const clientImages = [
   { src: client9, alt: "Cliente contemplado 9" },
 ];
 
+const ITEMS_PER_VIEW = 3;
+
 const ContemplatedClientsSection = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [startIndex, setStartIndex] = useState(0);
 
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % clientImages.length);
-  }, []);
+  const totalGroups = clientImages.length;
 
-  const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + clientImages.length) % clientImages.length);
-  }, []);
+  const nextGroup = useCallback(() => {
+    setStartIndex((prev) => (prev + 1) % totalGroups);
+  }, [totalGroups]);
+
+  const prevGroup = useCallback(() => {
+    setStartIndex((prev) => (prev - 1 + totalGroups) % totalGroups);
+  }, [totalGroups]);
 
   useEffect(() => {
-    const interval = setInterval(nextSlide, 4000);
+    const interval = setInterval(nextGroup, 3000);
     return () => clearInterval(interval);
-  }, [nextSlide]);
+  }, [nextGroup]);
+
+  const getVisibleImages = () => {
+    const images = [];
+    for (let i = 0; i < ITEMS_PER_VIEW; i++) {
+      images.push(clientImages[(startIndex + i) % clientImages.length]);
+    }
+    return images;
+  };
 
   return (
     <section id="clientes" className="py-16 md:py-20 bg-secondary/20">
@@ -55,47 +67,52 @@ const ContemplatedClientsSection = () => {
           </p>
         </div>
 
-        {/* Carrossel */}
-        <div className="max-w-3xl mx-auto">
-          <div className="relative bg-card rounded-2xl shadow-lg p-4 md:p-6">
-            {/* Setas de navegação */}
-            <button
-              onClick={prevSlide}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-              aria-label="Anterior"
-            >
-              <ChevronLeft className="w-6 h-6 text-primary" />
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-              aria-label="Próximo"
-            >
-              <ChevronRight className="w-6 h-6 text-primary" />
-            </button>
+        {/* Grid 3x3 */}
+        <div className="max-w-5xl mx-auto relative">
+          {/* Setas de navegação */}
+          <button
+            onClick={prevGroup}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-lg hover:bg-gray-50 transition-colors -translate-x-1/2"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="w-6 h-6 text-primary" />
+          </button>
+          <button
+            onClick={nextGroup}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-lg hover:bg-gray-50 transition-colors translate-x-1/2"
+            aria-label="Próximo"
+          >
+            <ChevronRight className="w-6 h-6 text-primary" />
+          </button>
 
-            {/* Imagem */}
-            <div className="px-8 md:px-10">
-              <img
-                src={clientImages[currentIndex].src}
-                alt={clientImages[currentIndex].alt}
-                className="w-full h-auto rounded-xl object-contain max-h-[500px]"
-              />
-            </div>
-
-            {/* Indicadores */}
-            <div className="flex justify-center gap-2 mt-4">
-              {clientImages.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    index === currentIndex ? "bg-primary w-6" : "bg-primary/30"
-                  }`}
-                  aria-label={`Ir para imagem ${index + 1}`}
+          {/* Grid de imagens */}
+          <div className="grid grid-cols-3 gap-4 px-8 md:px-10">
+            {getVisibleImages().map((image, index) => (
+              <div
+                key={`${startIndex + index}`}
+                className="bg-card rounded-xl shadow-md overflow-hidden transition-transform duration-500 hover:scale-105"
+              >
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="w-full h-auto object-contain"
                 />
-              ))}
-            </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Indicadores */}
+          <div className="flex justify-center gap-2 mt-6">
+            {clientImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setStartIndex(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === startIndex ? "bg-primary w-6" : "bg-primary/30"
+                }`}
+                aria-label={`Ir para grupo ${index + 1}`}
+              />
+            ))}
           </div>
         </div>
       </div>

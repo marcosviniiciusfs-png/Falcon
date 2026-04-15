@@ -1,5 +1,5 @@
 import { Phone, MapPin, Mail } from "lucide-react";
-import logoRaz from "@/assets/logo-raz.png";
+import logoRaz from "@/assets/logo-cota.png";
 
 const Footer = () => {
   return (
@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           {/* Logo e Social */}
           <div>
-            <img src={logoRaz} alt="Raz Soluções Financeiras" className="h-12 w-auto mb-4" />
+            <img src={logoRaz} alt="Cota Investimento" className="h-12 w-auto mb-4" />
             <h3 className="text-xl font-bold mb-4">Social</h3>
             <div className="flex gap-4">
               <a
@@ -34,7 +34,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a
-                href="mailto:razsolucoesfinanceiras@gmail.com"
+                href="mailto:supervisaocota@gmail.com"
                 className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
                 aria-label="E-mail"
               >
@@ -50,13 +50,25 @@ const Footer = () => {
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="font-medium">WhatsApp: (99) 98441-5689</p>
+                  <a
+                    href="https://wa.me/559884118188"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium hover:underline"
+                  >
+                    WhatsApp: (98) 8411-8188
+                  </a>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="font-medium">razsolucoesfinanceiras@gmail.com</p>
+                  <a
+                    href="mailto:supervisaocota@gmail.com"
+                    className="font-medium hover:underline"
+                  >
+                    supervisaocota@gmail.com
+                  </a>
                 </div>
               </div>
             </div>
@@ -69,8 +81,9 @@ const Footer = () => {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 mt-1 flex-shrink-0" />
                 <div>
-                  <p>Rua Nova, Itamar Guara, SN</p>
-                  <p>Grajaú-MA, 65940-000</p>
+                  <p>Rua Nova, 135 Centro</p>
+                  <p>CEP 65300-067</p>
+                  <p>Santa Inês - Maranhão</p>
                 </div>
               </div>
             </div>
@@ -79,7 +92,7 @@ const Footer = () => {
 
         <div className="border-t border-white/20 pt-6 text-center">
           <p className="text-white/90 text-sm">
-            Copyright 2025 - Todos os direitos reservados por Raz Soluções Financeiras
+            Copyright 2025 - Todos os direitos reservados por Cota Investimento
           </p>
         </div>
       </div>
