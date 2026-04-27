@@ -41,7 +41,7 @@ const HeroSection = ({ onSimulateClick }: HeroSectionProps) => {
             </h1>
 
             <p className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-lg">
-              Simule seu crédito gratuitamente e descubra o caminho para conquistar a casa própria, o carro novo ou o empréstimo que você precisa.
+              Simule seu crédito gratuitamente e descubra o caminho para conquistar a casa própria, o carro novo ou qualquer bem que você deseja
             </p>
 
             {/* Badges */}
