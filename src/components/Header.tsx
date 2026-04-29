@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo-cota.png";
+import logo from "@/assets/logo-falcon.jpg";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,35 +15,35 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="Cota Investimentos" className="h-14 md:h-16 lg:h-20 w-auto" />
+          <img src={logo} alt="Falcon Empreendimentos & Negócios" className="h-14 md:h-16 lg:h-20 w-auto" />
         </div>
 
         {/* Desktop Menu */}
         <nav className="hidden md:flex items-center gap-6">
           <button
             onClick={() => scrollToSection("inicio")}
-            className="text-primary-foreground/90 hover:text-primary-foreground transition-colors font-medium"
+            className="text-primary/90 hover:text-primary transition-colors font-medium"
           >
             Início
           </button>
           <button
             onClick={() => scrollToSection("simulador")}
-            className="text-primary-foreground/90 hover:text-primary-foreground transition-colors font-medium"
+            className="text-primary/90 hover:text-primary transition-colors font-medium"
           >
             Simulador
           </button>
           <button
             onClick={() => scrollToSection("beneficios")}
-            className="text-primary-foreground/90 hover:text-primary-foreground transition-colors font-medium"
+            className="text-primary/90 hover:text-primary transition-colors font-medium"
           >
             Benefícios
           </button>
           <button
             onClick={() => scrollToSection("clientes")}
-            className="text-primary-foreground/90 hover:text-primary-foreground transition-colors font-medium"
+            className="text-primary/90 hover:text-primary transition-colors font-medium"
           >
             Clientes
           </button>
@@ -53,7 +53,7 @@ const Header = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden text-primary-foreground hover:bg-primary-foreground/10"
+          className="md:hidden text-primary hover:bg-primary/10"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -62,29 +62,29 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-primary border-t border-primary-foreground/20">
+        <div className="md:hidden bg-white border-t border-primary/20">
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
             <button
               onClick={() => scrollToSection("inicio")}
-              className="text-primary-foreground/90 hover:text-primary-foreground transition-colors text-left py-2 font-medium"
+              className="text-primary/90 hover:text-primary transition-colors text-left py-2 font-medium"
             >
               Início
             </button>
             <button
               onClick={() => scrollToSection("simulador")}
-              className="text-primary-foreground/90 hover:text-primary-foreground transition-colors text-left py-2 font-medium"
+              className="text-primary/90 hover:text-primary transition-colors text-left py-2 font-medium"
             >
               Simulador
             </button>
             <button
               onClick={() => scrollToSection("beneficios")}
-              className="text-primary-foreground/90 hover:text-primary-foreground transition-colors text-left py-2 font-medium"
+              className="text-primary/90 hover:text-primary transition-colors text-left py-2 font-medium"
             >
               Benefícios
             </button>
             <button
               onClick={() => scrollToSection("clientes")}
-              className="text-primary-foreground/90 hover:text-primary-foreground transition-colors text-left py-2 font-medium"
+              className="text-primary/90 hover:text-primary transition-colors text-left py-2 font-medium"
             >
               Clientes
             </button>

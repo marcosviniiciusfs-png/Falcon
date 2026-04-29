@@ -1,21 +1,21 @@
 import { Phone, MapPin, Mail } from "lucide-react";
-import logoRaz from "@/assets/logo-cota.png";
+import logoRaz from "@/assets/logo-falcon.jpg";
 
 const Footer = () => {
   return (
-    <footer id="contato" className="bg-primary text-white">
+    <footer id="contato" className="bg-white text-primary">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           {/* Logo e Social */}
           <div>
-            <img src={logoRaz} alt="Cota Investimentos" className="h-12 w-auto mb-4" />
+            <img src={logoRaz} alt="Falcon Empreendimentos & Negócios" className="h-12 w-auto mb-4" />
             <h3 className="text-xl font-bold mb-4">Social</h3>
             <div className="flex gap-4">
               <a
                 href="https://www.instagram.com/grupocotaconsorcio"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -26,7 +26,7 @@ const Footer = () => {
                 href="https://www.facebook.com/profile.php?id=61552014638650"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
                 aria-label="Facebook"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -35,7 +35,7 @@ const Footer = () => {
               </a>
               <a
                 href="mailto:supervisaocota@gmail.com"
-                className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
                 aria-label="E-mail"
               >
                 <Mail className="w-5 h-5" />
@@ -90,9 +90,9 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-white/20 pt-6 text-center">
-          <p className="text-white/90 text-sm">
-            Copyright 2025 - Todos os direitos reservados por Cota Investimentos
+        <div className="border-t border-primary/20 pt-6 text-center">
+          <p className="text-primary/80 text-sm">
+            Copyright 2025 - Todos os direitos reservados por Falcon Empreendimentos & Negócios
           </p>
         </div>
       </div>
